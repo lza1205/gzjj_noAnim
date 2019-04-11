@@ -1,0 +1,3 @@
+F:/LLJ-android(1)/noAnim/app/.externalNativeBuild/cmake/debug/armeabi/CMakeFiles/edit_cache.dir
+F:/LLJ-android(1)/noAnim/app/.externalNativeBuild/cmake/debug/armeabi/CMakeFiles/JniMethods-lib.dir
+F:/LLJ-android(1)/noAnim/app/.externalNativeBuild/cmake/debug/armeabi/CMakeFiles/rebuild_cache.dir
