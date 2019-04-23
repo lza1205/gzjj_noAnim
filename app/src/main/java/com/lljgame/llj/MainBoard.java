@@ -51,6 +51,15 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
 
     private byte[] checklink_ok = {(byte) 0xAA, 0x03, 0x01, (byte) 0xFE, (byte) 0xFC, (byte) 0xDD};//检测连接的固定码
 
+    //============== @lianzhian
+    //协议部分
+    private int gamePower = 0x9;
+    private int hitPower = 0xA;
+    private int zHeight = 0x10;
+    private int dropDown = 0x13;
+    private int InitPosition = 0x14;
+    //======================
+
 
     public MainBoard(Context context, MainActivity.UIHandler uiHandler, Logger log) {
         this.context = context;
@@ -100,6 +109,7 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
         mIsRequesting = true;
         if (isCanScan) {
             info = RemoteApi.qrcodeScan(qrcode);
+
             isCanScan = false;
             if (info == null) isCanScan = true;
         }
@@ -150,19 +160,19 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
                                 handleWin();
                                 handleGameOver();//add
                             }*/
-                            if((DeviceInfo.CurrentDevice)==DeviceInfo.Device_A){
+                            if ((DeviceInfo.CurrentDevice) == DeviceInfo.Device_A) {
                                 if (data[4] == 0x00) {
                                     handleGameOver();
                                 } else if (data[4] == 0x01) {
                                     handleWin();
                                     handleGameOver();//add
                                 }
-                            }else{
+                            } else {
                                 if (data[4] == 0x00) {
-                                    if(DeviceInfo.CurrentDevice==DeviceInfo.Device_ND){
+                                    if (DeviceInfo.CurrentDevice == DeviceInfo.Device_ND) {
                                         //扭蛋机
                                         handleWin(data[5]);
-                                    }else{
+                                    } else {
                                         handleWin();
                                     }
                                     handleGameOver();//add
@@ -234,11 +244,18 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
         sendToDevice(new byte[]{(byte) info.max, (byte) info.min, (byte) info.time, (byte) sum, (byte) 0xDE});
     }
 
-    public void sendNewLauchDevice(LaunchInfo info, float a) {
+    private void sendNewLauchDevice(LaunchInfo info, float a) {
         if (info.max != info.min) {
             info.max = (int) (info.max * a);
             info.min = (int) (info.min * a);
         }
+
+        if(info.isTwoClaws) {
+            //==========@lianzhian  //先发送设置参数函数
+            sendSetSystemSetting();
+            //=========================
+        }
+
         //发送游戏开始的命令
         switch (DeviceInfo.CurrentDevice) {
             case DeviceInfo.Device_A:
@@ -250,7 +267,7 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
                 sendNewToDevice(new byte[]{0x07, 0x01, (byte) 0xFD, (byte) info.max, (byte) info.min, (byte) info.time, b1}, true);
                 break;
             case DeviceInfo.Device_ND:
-                sendNewToDevice(new byte[]{0x04,0x01, (byte) 0xFD,0x01},true);
+                sendNewToDevice(new byte[]{0x04, 0x01, (byte) 0xFD, 0x01}, true);
                 break;
             case DeviceInfo.Device_LZJ:
                 byte b2 = (byte) (info.max == info.min ? 0x00 : 0x01);
@@ -259,6 +276,17 @@ public class MainBoard implements DeviceDataCtrl.DeviceDataCtrlListener {
         }
         // sendNewToDevice(new byte[]{0x04, 0x01, (byte) 0xFB,0x01}, true);
     }
+
+    //==========@lianzhian  //先发送设置参数函数
+    private void sendSetSystemSetting()
+    {
+        sendNewToDevice(new byte[]{0x04, 0x01, (byte) gamePower, (byte) info.gamePower}, true);
+        sendNewToDevice(new byte[]{0x04, 0x01, (byte) hitPower, (byte) info.hitPower}, true);
+        sendNewToDevice(new byte[]{0x04, 0x01, (byte) zHeight, (byte) info.zHeight}, true);
+        sendNewToDevice(new byte[]{0x04, 0x01, (byte) dropDown, (byte) info.dropDown}, true);
+        sendNewToDevice(new byte[]{0x04, 0x01, (byte) InitPosition, (byte) info.initPosition}, true);
+    }
+    //==================================================
 
     public void sendNewToDevice(byte[] data, boolean isState) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

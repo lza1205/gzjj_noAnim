@@ -1,10 +1,13 @@
 package com.lljgame.llj.remote;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.lljgame.llj.Config;
 import com.lljgame.llj.MApplication;
+import com.lljgame.llj.MainBoard;
 import com.lljgame.llj.bean.DeviceConfig;
+import com.lljgame.llj.bean.DeviceInfo;
 import com.lljgame.llj.bean.LaunchInfo;
 import com.lljgame.llj.log.MyLog;
 import com.lljgame.llj.utils.CipherUtils;
@@ -29,6 +32,8 @@ import static com.lljgame.llj.utils.HttpUtils.PostJson;
  */
 
 public class RemoteApi {
+    private static final String TAG = "LLJ";
+
     public static String DEVICE_SERVER_BASE_URL = Config.SERVER_PROTOCOL + Config.SERVER_URL + ":" + Config.SERVER_HTTP_PORT;
     private static String GET_ACCOUNT_SECRET_URL = DEVICE_SERVER_BASE_URL + "/deviceServer/device/getAccountSecret";
     private static  String DEVICE_QRCODE_SCAN_URL = DEVICE_SERVER_BASE_URL + "/deviceServer/device/qrcodeScan";
@@ -59,6 +64,16 @@ public class RemoteApi {
     private static final String TIME = "time";
     private static final String IS_TICKET = "isTicket";
     private static final String COUNT = "count";
+
+    private static final String deviceType = "deviceType";
+
+    private static final String twoClaws = "twoClaws";
+    private static final String gamePower = "gamePower";
+    private static final String hitPower = "hitPower";
+    private static final String zHeight = "zHeight";
+    private static final String dropDown = "dropDown";
+    private static final String InitPosition = "initPosition";
+
 
     private static String deviceId;
     private static String deviceSecret;
@@ -188,21 +203,41 @@ public class RemoteApi {
             jsonReq.put(TIME_STAMP_STRING, now);
             jsonReq.put(QRCODE_STRING, qrcode);
 
+            //测试两爪机的 @lianzhian
+            jsonReq.put(deviceType, DeviceInfo.CurrentDevice);
+            //=================================================
+
             String jsonStr = PostJson(DEVICE_QRCODE_SCAN_URL, jsonReq.toString());
             JSONObject jsonRes = new JSONObject(jsonStr);
+
 
             int errCode = jsonRes.getInt(ERR_CODE_STRING);
             if (errCode != 0) {
                 return null;
             }
 
-            return new LaunchInfo(jsonRes.getInt(USER_ID_STRING),
+            LaunchInfo launchInfo = new LaunchInfo(jsonRes.getInt(USER_ID_STRING),
                     jsonRes.getInt(PROBABILITY_STRING),
                     jsonRes.getInt(TRADE_NO_STRING),
                     jsonRes.getInt(MAX),
                     jsonRes.getInt(MIN),
                     jsonRes.getInt(TIME),
                     jsonRes.getBoolean(IS_TICKET));
+
+            //======== @lianzhian
+            JSONObject twoClawsJsonRes = jsonRes.getJSONObject(twoClaws);
+            if(twoClawsJsonRes != null) {
+                launchInfo.setTwoClaws(twoClawsJsonRes.getInt(gamePower),
+                        twoClawsJsonRes.getInt(hitPower),
+                        twoClawsJsonRes.getInt(zHeight),
+                        twoClawsJsonRes.getInt(dropDown),
+                        twoClawsJsonRes.getInt(InitPosition));
+            }
+            Log.d(TAG, twoClawsJsonRes.toString());
+            //=================================================
+
+            return launchInfo;
+
         } catch (Exception e) {
             e.printStackTrace();
         }

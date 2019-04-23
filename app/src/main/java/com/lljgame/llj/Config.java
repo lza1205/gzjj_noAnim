@@ -10,6 +10,7 @@ public class Config {
     public static volatile String SERVER_PROTOCOL = "https://";
     // public static  String SERVER_PROTOCOL = "http://";
      public static volatile String SERVER_URL = "api.lljgame.com";
+    //public static volatile String SERVER_URL = "api-debug.lljgame.com";
     //public static volatile String SERVER_URL = "jz.lljgame.com";
     // public static final String SERVER_URL = "47.106.224.80";
     // public static String SERVER_URL = "192.168.0.109";
